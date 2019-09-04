@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bw.mapper.MovieDao">
+	<select id="findAll" parameterType="map" resultType="movie">
+		select *,
+		(select GROUP_CONCAT(tname,'') from type t,movietype mt where t.tid=mt.tid and m.mid=mt.mid) as tname
+		 from movie m
+		 <where>
+		 	<if test="mname!=null and mname != ''">
+		 		and m.mname like concat("%",#{mname},"%")
+		 	</if>
+		 </where>
+	</select>
+	<delete id="deleteAll" parameterType="string">
+		delete from movie where mid in (${_parameter})
+	</delete>
+	<delete id="deleteMovieType" parameterType="string">
+		delete from movietype where mid in (${_parameter})
+	</delete>
+	<select id="findType" resultType="type">
+		select * from type
+	</select>
+	<insert id="addMovie" parameterType="movie">
+		insert into movie(mname,introduction,author,mdate) values(#{mname},#{introduction},#{author},#{mdate})
+		<selectKey order="AFTER" keyProperty="mid" resultType="int">
+			select last_insert_id() as mid
+		</selectKey>
+	</insert>
+	<insert id="addMovieType" parameterType="map">
+		insert into movietype values(#{mid},#{tid})
+	</insert>
+	<select id="queryById" parameterType="int" resultType="movie">
+		select *,
+		(select GROUP_CONCAT(tname,'') from type t,movietype mt where t.tid=mt.tid and m.mid=mt.mid) as tname,
+		(select GROUP_CONCAT(t.tid,'') from type t,movietype mt where t.tid=mt.tid and m.mid=mt.mid) as tids
+		 from movie m where m.mid=#{0}
+	</select>
+	<update id="updateMovie" parameterType="movie">
+		update movie set mname=#{mname},introduction=#{introduction},author=#{author},mdate=#{mdate} where mid=#{mid}
+	</update>
+	<delete id="deleteMovieTy" parameterType="int">
+		delete from movietype where mid=#{0}
+	</delete>
+</mapper>
